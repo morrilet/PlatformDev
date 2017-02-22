@@ -132,10 +132,10 @@ public class PlayerRaycastManager : MonoBehaviour
 
 	private float CheckVertRaycasts(float raycastLength)
 	{
-		float nearestHit = raycastLength - transform.position.y;
+		float nearestHit = Mathf.Abs(raycastLength - transform.position.y);
 
 		if (raycastLength > 0) 
-		{
+		{/*
 			//Top...
 			for (int i = 0; i < numVertRaycasts; i++) 
 			{
@@ -162,7 +162,7 @@ public class PlayerRaycastManager : MonoBehaviour
 				{
 					Debug.DrawRay (origin, direction * raycastLength, Color.red);
 				}
-			}
+			}*/
 		} 
 		else if (raycastLength < 0) 
 		{
@@ -174,8 +174,8 @@ public class PlayerRaycastManager : MonoBehaviour
 				Vector2 origin = transform.position;
 				origin.x += (((float)i / ((float)numVertRaycasts - 1.0f)) * (objWidth - 2.0f * skinWidth)) - (0.5f * objWidth) + skinWidth;
 				origin.y -= (objHeight / 2) + skinWidth;
-				//Debug.DrawLine (new Vector2(origin.x - 0.05f, origin.y), new Vector2(origin.x + 0.05f, origin.y), Color.blue);
-				//Debug.DrawLine (origin, new Vector2 (origin.x, origin.y + Vector2.down.y * .05f), Color.blue);
+				Debug.DrawLine (new Vector2(origin.x - 0.05f, origin.y), new Vector2(origin.x + 0.05f, origin.y), Color.blue);
+				Debug.DrawLine (origin, new Vector2 (origin.x, origin.y + Vector2.down.y * .05f), Color.blue);
 
 				Vector2 direction = Vector2.down;
 
@@ -183,9 +183,10 @@ public class PlayerRaycastManager : MonoBehaviour
 
 				if (hit.transform != null)
 				{
-					if (nearestHit >= hit.point.y - origin.y) 
+					if (nearestHit >= Mathf.Abs(hit.point.y - origin.y)) 
 					{
 						nearestHit = Mathf.Abs(hit.point.y - origin.y);
+						//Debug.Log (nearestHit);
 					}
 					collisionInfo.bottomCollision = true;
 					Debug.DrawRay (origin, direction * -raycastLength, Color.yellow);

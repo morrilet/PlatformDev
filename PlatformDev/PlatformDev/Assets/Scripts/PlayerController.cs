@@ -4,8 +4,17 @@ using System.Collections;
 [RequireComponent(typeof(PlayerRaycastManager))]
 public class PlayerController : MonoBehaviour 
 {
-	Vector2 velocity;
 	public float moveSpeed; //Use acceleration graphs for this someday.
+
+	public float gravity;
+
+	//Jumping
+	public AnimationCurve jumpGraph;
+	public float jumpHeight;
+	public float jumpTime;
+	private float jumpTimer;
+
+	Vector2 velocity;
 	PlayerRaycastManager raycastManager;
 
 	struct PlayerInfo
@@ -57,13 +66,14 @@ public class PlayerController : MonoBehaviour
 		//Move ();
 
 		UpdateVelocity ();
-		Debug.Log ("UpdateVelocity() :: Velocity :: " + velocity);
+		Debug.Log ("VEL: " + velocity);
+		//Debug.Log ("UpdateVelocity() :: Velocity :: " + velocity);
 		raycastManager.PerformUpdate (velocity);
-		Debug.Log ("RaycastManager :: PerformUpdate(" + velocity + ")");
+		//Debug.Log ("RaycastManager :: PerformUpdate(" + velocity + ")");
 		CheckCollisions ();
-		Debug.Log ("CheckCollsions() :: Velocity :: " + velocity);
+		//Debug.Log ("CheckCollsions() :: Velocity :: " + velocity);
 		UpdateStates ();
-		Debug.Log ("UpdateStates()\n\n");
+		//Debug.Log ("UpdateStates()\n\n");
 
 		//Apply velocity to the gameObject...
 		transform.position += (Vector3)velocity;
@@ -108,8 +118,24 @@ public class PlayerController : MonoBehaviour
 		velocity = Vector2.zero;
 		velocity.x += moveSpeed * Input.GetAxisRaw ("Horizontal");
 
+		//Jumping
+		if (Input.GetKeyDown (KeyCode.Space) && !playerInfo.isJumping) 
+		{
+			//StartCoroutine (Jump ((velY) => { this.velocity.y = velY; })); //Used a closure here to allow velocity.y to be edited from the coroutine.
+			//StartCoroutine(Jump());
+			playerInfo.isJumping = true;
+			Debug.Log ("JUMP");
+		}
+		if (playerInfo.isJumping) 
+		{
+			Jump ();
+		} 
+		else
+		{
+			jumpTimer = 0.0f;
+		}
 		//Apply gravity... Can do this in another method if needed.
-		velocity.y -= 0.25f; //Use an actual value for gravity later.
+		velocity.y -= gravity;
 	}
 
 	private void CheckCollisions()
@@ -123,22 +149,60 @@ public class PlayerController : MonoBehaviour
 		if (raycastManager.collisionInfo.bottomCollision && velocity.y < 0) 
 		{
 			//velocity.y = transform.position.y - nearestHits.y;
-			velocity.y = nearestHits.y;
+			velocity.y = -nearestHits.y;
+
+			//Best to put this elsewhere...
+			if (playerInfo.isJumping && playerInfo.isJumping_Prev)
+				playerInfo.isJumping = false;
+			if (playerInfo.isFalling)
+				playerInfo.isFalling = false;
+
+			Debug.Log ("Bottom Collision!");
 		}
 		if (raycastManager.collisionInfo.leftCollision && velocity.x < 0) 
 		{
-			velocity.x = nearestHits.x;
+			velocity.x = -nearestHits.x;
 		}
 		if (raycastManager.collisionInfo.rightColision && velocity.x > 0) 
 		{
-			velocity.x = transform.position.x - nearestHits.x;
+			velocity.x = nearestHits.x;
 		}
 		if (raycastManager.collisionInfo.topCollision && velocity.y > 0) 
 		{
-			velocity.y = transform.position.y - nearestHits.y;
+			velocity.y = nearestHits.y;
+			Debug.Log ("Top Collision!");
 		}
 
 		//Apply velocity to the gameObject...
 		//transform.position += (Vector3)velocity;
 	}
+
+	private void Jump()
+	{
+		if (jumpTimer < jumpTime) 
+		{
+			velocity.y += jumpGraph.Evaluate (jumpTimer / jumpTime) / jumpTime;
+
+			jumpTimer += Time.deltaTime;
+		}
+	}
+
+	/*
+	private IEnumerator Jump()//System.Action<float> velY)
+	{
+		jumpTimer = 0.0f;
+		playerInfo.isJumping = true;
+
+		while (jumpTimer < jumpTime)
+		{
+			//velY(jumpGraph.Evaluate (jumpTimer / jumpTime));
+			velocity.y = jumpGraph.Evaluate(jumpTimer / jumpTime);
+			Debug.Log ("Eval: " + jumpGraph.Evaluate(jumpTimer / jumpTime));
+			//Debug.Log ("NewVel: " + velocity);
+			jumpTimer += Time.deltaTime;
+			yield return null;
+		}
+		playerInfo.isJumping = false;
+	}
+	*/
 }
