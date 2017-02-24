@@ -4,11 +4,13 @@ using System.Collections;
 public class JumpEquationTester : MonoBehaviour 
 {
 	public float jumpHeight;
-	public float jumpTimeToApex;
-	public float gravity;
+	public float jumpDistance_BeforeApex;
+	public float jumpDistance_AfterApex;
+	public float playerSpeed;
 
 	private float jumpTimer;
 	private bool isJumping;
+	private float gravity;
 	private Vector2 velocity;
 
 	void Start()
@@ -16,17 +18,32 @@ public class JumpEquationTester : MonoBehaviour
 		isJumping = false;
 		jumpTimer = 0.0f;
 		velocity = Vector2.zero;
-		jumpTimeToApex *= 51.0f;
+		Application.targetFrameRate = 10;
 	}
 
 	void FixedUpdate()
 	{
+		Debug.Log (1.0f / Time.deltaTime);
 		//Update velocity...
 		//velocity = Vector2.zero;
 		//if (!isJumping)
 			//velocity.y += gravity; //Apply gravity
 		//else
-		velocity.y += -((2.0f * jumpHeight) / jumpTimeToApex) / jumpTimeToApex;
+		if (isJumping && velocity.y < 0) 
+		{
+			gravity = (-(2.0f * jumpHeight) * Mathf.Pow(playerSpeed, 2.0f)) / Mathf.Pow(jumpDistance_AfterApex, 2.0f);
+		} 
+		else 
+		{
+			gravity = (-(2.0f * jumpHeight) * Mathf.Pow(playerSpeed, 2.0f)) / Mathf.Pow(jumpDistance_BeforeApex, 2.0f);
+		}
+
+		velocity.y += gravity;
+		//velocity.y += -((2.0f * jumpHeight) / (jumpTimeToApex / Time.fixedDeltaTime)) / (jumpTimeToApex / Time.fixedDeltaTime);
+
+		//Movement...
+		//velocity.x = Input.GetAxisRaw("Horizontal") * playerSpeed;
+		velocity.x = playerSpeed;
 
 		if (!isJumping) //Jump state stuff
 		{
@@ -34,7 +51,7 @@ public class JumpEquationTester : MonoBehaviour
 			jumpTimer = 0.0f;
 
 			//Set to initial velocity...
-			velocity.y = (2.0f * jumpHeight) / jumpTimeToApex;
+			velocity.y = (2.0f * jumpHeight * playerSpeed) / (jumpDistance_BeforeApex);
 		}
 
 		if (isJumping) //Jump velocity stuff
@@ -50,12 +67,12 @@ public class JumpEquationTester : MonoBehaviour
 			//velocity.y += initialVelocity + gravity * (jumpTimer);
 			//velocity.y += initialVelocity - (initialVelocity / jumpHeight) * (jumpTimer);
 
-			Debug.Log ("Jumping... P :: " + transform.position.y + " V :: " + velocity.y + " T :: " + jumpTimer);
+			//Debug.Log ("Jumping... P :: " + transform.position.y + " V :: " + velocity.y + " T :: " + jumpTimer);
 		}
 		//End of velocity updates.
 
 		//Keep the jumper from falling off-screen...
-		if (transform.position.y <= 0)
+		if (transform.position.y + velocity.y <= 0)
 		{
 			transform.position = new Vector3 (transform.position.x, 0.0f, transform.position.z);
 			if(velocity.y < 0)
@@ -66,6 +83,8 @@ public class JumpEquationTester : MonoBehaviour
 		}
 
 		//Apply velocity...
+		//velocity *= Time.deltaTime;
+		//transform.position += ((Vector3)velocity * Time.deltaTime) + new Vector3(0.0f, (0.5f * gravity * Time.deltaTime * Time.deltaTime), 0.0f);
 		transform.position += (Vector3)velocity;// * Time.deltaTime;
 	}
 }
