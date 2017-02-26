@@ -49,14 +49,16 @@ public class JumpEquationTester : MonoBehaviour
 				initialVelocity = (2.0f * maxJumpHeight * playerSpeed) / (jumpDistance_BeforeApex);
 				velocity.y = initialVelocity;
 			} 
-			//else if (canDoubleJump && !hasDoubleJumped) 
-			//{
-			//	hasDoubleJumped = true;
+			/*
+			else if (canDoubleJump && !hasDoubleJumped) 
+			{
+				hasDoubleJumped = true;
 
 				//Set a new initial velocity and apply it.
-			//	initialVelocity = (2.0f * doubleJumpHeight * playerSpeed) / doubleJumpDistance_BeforeApex;
-			//	velocity.y = initialVelocity;
-			//}
+				initialVelocity = (2.0f * doubleJumpHeight * playerSpeed) / doubleJumpDistance_BeforeApex;
+				velocity.y = initialVelocity;
+			}
+			*/
 		}
 		if (Input.GetKeyUp (KeyCode.Space) && isJumping && velocity.y > 0) // && !jumpReleasedEarly && velocity.y > 0) //Releasing jump key during a jump...
 		{
@@ -76,13 +78,13 @@ public class JumpEquationTester : MonoBehaviour
 		{
 			if (transform.position.y <= minJumpHeight + initialPositionY) //Below minimum jump height...
 			{
-				gravity = -(Mathf.Pow(initialVelocity, 2.0f)) / (2.0f * (minJumpHeight));
+				gravity = -(Mathf.Pow(initialVelocity, 2.0f)) / (2.0f * minJumpHeight);
 				Debug.Log (gravity);
 			}
 			else //Between min and max jump heights...
 			{
 				//Transform position here is representative of the current jumped height, not the actual position of the player.
-				gravity = -(Mathf.Pow(initialVelocity, 2.0f)) / (2.0f * ((transform.position.y - initialPositionY) - minJumpHeight)); 
+				gravity = -(Mathf.Pow(initialVelocity, 2.0f)) / (2.0f * (transform.position.y - initialPositionY)); 
 			}
 		}
 		else if (!jumpReleasedEarly) //Use normal gravity. (Not associated with jumping)
