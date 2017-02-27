@@ -49,16 +49,15 @@ public class JumpEquationTester : MonoBehaviour
 				initialVelocity = (2.0f * maxJumpHeight * playerSpeed) / (jumpDistance_BeforeApex);
 				velocity.y = initialVelocity;
 			} 
-			/*
 			else if (canDoubleJump && !hasDoubleJumped) 
 			{
 				hasDoubleJumped = true;
+				jumpReleasedEarly = false; //Reset this so that early release gravity isn't applied.
 
 				//Set a new initial velocity and apply it.
 				initialVelocity = (2.0f * doubleJumpHeight * playerSpeed) / doubleJumpDistance_BeforeApex;
 				velocity.y = initialVelocity;
 			}
-			*/
 		}
 		if (Input.GetKeyUp (KeyCode.Space) && isJumping && velocity.y > 0) // && !jumpReleasedEarly && velocity.y > 0) //Releasing jump key during a jump...
 		{
@@ -68,30 +67,7 @@ public class JumpEquationTester : MonoBehaviour
 
 	void FixedUpdate() //Physics stuff...
 	{
-		if (isJumping && velocity.y < 0) //Use the gravity for max jump height. (Default)
-		{
-			//Post-apex, pre-landing gravity.
-			gravity = (-(2.0f * (maxJumpHeight)) * Mathf.Pow (playerSpeed, 2.0f)) / Mathf.Pow (jumpDistance_AfterApex, 2.0f);
-			Debug.Log (gravity);
-		} 
-		else if (isJumping && jumpReleasedEarly && velocity.y > 0) //Use gravity based on when the jump button was released. (On early release)
-		{
-			if (transform.position.y <= minJumpHeight + initialPositionY) //Below minimum jump height...
-			{
-				gravity = -(Mathf.Pow(initialVelocity, 2.0f)) / (2.0f * minJumpHeight);
-				Debug.Log (gravity);
-			}
-			else //Between min and max jump heights...
-			{
-				//Transform position here is representative of the current jumped height, not the actual position of the player.
-				gravity = -(Mathf.Pow(initialVelocity, 2.0f)) / (2.0f * (transform.position.y - initialPositionY)); 
-			}
-		}
-		else if (!jumpReleasedEarly) //Use normal gravity. (Not associated with jumping)
-		{
-			//Normal gravity.
-			gravity = (-(2.0f * maxJumpHeight) * Mathf.Pow(playerSpeed, 2.0f)) / Mathf.Pow(jumpDistance_BeforeApex, 2.0f);
-		}
+		AssignGravity ();
 
 		//Keep the jumper from falling off-screen...
 		if (transform.position.y + velocity.y <= -2.0f)
@@ -111,6 +87,43 @@ public class JumpEquationTester : MonoBehaviour
 		//Apply velocity...
 		velocity.y += gravity; ///Apply gravity.
 		transform.position += (Vector3)velocity;// * Time.deltaTime;
+	}
+
+	//Assigns a value to gravity based on the state of the jumper.
+	void AssignGravity()
+	{
+		if (isJumping && velocity.y < 0) //Use the gravity for max jump height. (Default) 
+		{
+			//Post-apex, pre-landing gravity.
+			gravity = (-(2.0f * (maxJumpHeight)) * Mathf.Pow (playerSpeed, 2.0f)) / Mathf.Pow (jumpDistance_AfterApex, 2.0f);
+			Debug.Log (gravity);
+		}
+		else if (isJumping && jumpReleasedEarly && velocity.y > 0) //Use gravity based on when the jump button was released. (On early release)
+		{ 
+			if (transform.position.y <= minJumpHeight + initialPositionY) //Below minimum jump height... 
+			{ 
+				gravity = -(Mathf.Pow (initialVelocity, 2.0f)) / (2.0f * minJumpHeight);
+				Debug.Log (gravity);
+			} 
+			else //Between min and max jump heights...
+			{ 
+				//Transform position here is representative of the current jumped height, not the actual position of the player.
+				gravity = -(Mathf.Pow (initialVelocity, 2.0f)) / (2.0f * (transform.position.y - initialPositionY)); 
+			}
+		} 
+		else if (hasDoubleJumped && velocity.y > 0) 
+		{
+			gravity = (-(2.0f * doubleJumpHeight) * Mathf.Pow (playerSpeed, 2.0f)) / Mathf.Pow (doubleJumpDistance_BeforeApex, 2.0f);
+		}
+		else if (hasDoubleJumped && velocity.y < 0) 
+		{
+			gravity = (-(2.0f * doubleJumpHeight) * Mathf.Pow (playerSpeed, 2.0f)) / Mathf.Pow (doubleJumpDistance_AfterApex, 2.0f);
+		}
+		else if (!jumpReleasedEarly) //Use normal gravity. (Not associated with jumping)
+		{
+			//Normal gravity.
+			gravity = (-(2.0f * maxJumpHeight) * Mathf.Pow(playerSpeed, 2.0f)) / Mathf.Pow(jumpDistance_BeforeApex, 2.0f);
+		}
 	}
 
 	//For debugging and testing...
